@@ -1,0 +1,513 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>DEVORA Content Calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&family=Lexend:wght@500&display=swap">
+<style>
+/* Layout: brand header → month overview → platform playbooks → week-by-week calendar with filters */
+:root{
+  --bg:#F3EFE4; --surface:#FAF8F2; --surface2:#E9E3D6; --fg:#121412; --muted:#625D52; --line:rgba(18,20,18,.12);
+  --brand:#0A2E22; --brand-fg:#F3EFE4; --accent:#9A7550; --accent-soft:rgba(165,127,87,.14);
+  --ig:#B0603F; --fb:#2F5C8A; --li:#1D6B63; --tt:#2A2C29;
+  --display:"Inter Tight",ui-sans-serif,system-ui,sans-serif; --serif:"Instrument Serif",Georgia,serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace; --brandface:"Lexend","Inter Tight",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1612; --surface:#11201A; --surface2:#172A22; --fg:#EEE9DD; --muted:#A8A293; --line:rgba(238,233,221,.12);
+  --brand:#123D2F; --brand-fg:#F3EFE4; --accent:#C9A27A; --accent-soft:rgba(201,162,122,.14);
+  --ig:#D88A68; --fb:#7FA8D6; --li:#5FB3A8; --tt:#C9C4B7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1612; --surface:#11201A; --surface2:#172A22; --fg:#EEE9DD; --muted:#A8A293; --line:rgba(238,233,221,.12);
+  --brand:#123D2F; --brand-fg:#F3EFE4; --accent:#C9A27A; --accent-soft:rgba(201,162,122,.14);
+  --ig:#D88A68; --fb:#7FA8D6; --li:#5FB3A8; --tt:#C9C4B7; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--display);margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+h1,h2,h3{text-wrap:balance;margin:0;font-weight:500;letter-spacing:-.025em}
+.label{font:500 11px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.serif{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0}
+
+/* header */
+.hero{background:var(--brand);color:var(--brand-fg);padding-block:36px 32px;margin-bottom:36px}
+.hero .wrap{padding-block:0}
+.logo{font:500 17px/1 var(--brandface);letter-spacing:.16em;display:inline-flex;align-items:center}
+.logo svg{width:1em;height:1em;margin:0 .12em 0 .02em}
+.logo .co{font:italic 400 1.05em var(--serif);letter-spacing:0;margin-left:.12em}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1;margin-top:28px}
+.hero h1 .serif{color:#C9A27A}
+.hero p.sub{max-width:62ch;color:rgba(243,239,228,.75);margin:14px 0 0}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.stat{border:1px solid rgba(243,239,228,.18);border-radius:999px;padding:7px 14px;font-size:13px;display:flex;gap:8px;align-items:center}
+.stat b{font-weight:600}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+
+section{margin-top:44px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.sec-head h2{font-size:clamp(24px,3.2vw,32px)}
+
+/* month themes */
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.theme{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.theme h3{font-size:18px;margin:6px 0 6px}
+.theme p{margin:0;color:var(--muted);font-size:14px}
+.pillars{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{background:var(--accent-soft);color:var(--fg);border-radius:999px;padding:5px 12px;font-size:13px}
+
+/* playbooks */
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{font:500 13px var(--display);border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:8px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.tab[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.tab:focus-visible,.btn:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.play{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;margin-top:12px}
+.play-top{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+.play h3{font-size:24px;display:flex;align-items:center;gap:10px}
+.role{color:var(--muted);margin:6px 0 0}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.fact{background:var(--surface2);border-radius:8px;padding:12px}
+.fact p{margin:4px 0 0;font-weight:500;font-size:14px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:20px}
+.cols h4{margin:0 0 8px;font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.cols ul{margin:0;padding-left:18px}
+.cols li{margin-bottom:6px;font-size:14px}
+.do h4{color:var(--li)} .dont h4{color:var(--ig)} .rew h4{color:var(--accent)}
+
+/* repurpose */
+.flow{display:grid;grid-template-columns:1fr auto 1fr 1fr 1fr 1fr;gap:10px;align-items:stretch}
+.flow .src{background:var(--brand);color:var(--brand-fg);border-radius:10px;padding:16px}
+.flow .src p{margin:6px 0 0;color:rgba(243,239,228,.75);font-size:14px}
+.flow .arrow{display:grid;place-items:center;color:var(--muted);font-size:20px}
+.flow .out{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:14px}
+.flow .out b{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+
+/* calendar */
+.toolbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.progress{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px}
+.bar{width:120px;height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.week{margin-top:30px}
+.week-head{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+.week-head h3{font-size:22px}
+.week-head .goal{color:var(--muted);font-size:14px}
+.day{display:grid;grid-template-columns:96px 1fr;gap:14px;padding-block:12px;border-top:1px solid var(--line)}
+.day:first-of-type{border-top:0}
+.date b{display:block;font:500 26px/1 var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.date span{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px;min-width:0;align-items:start}
+.post{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--pc);border-radius:8px;padding:12px 14px;min-width:0}
+.post.done{opacity:.55}
+.post.done .hook{text-decoration:line-through;text-decoration-thickness:1px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{font:500 11px var(--mono);letter-spacing:.06em;border-radius:4px;padding:3px 7px;background:var(--surface2);color:var(--fg)}
+.chip.plat{background:var(--pc);color:var(--bg)}
+.chip.time{background:transparent;border:1px solid var(--line)}
+.hook{font-weight:600;font-size:15px;line-height:1.35;margin:9px 0 4px}
+.pillar{font-size:12px;color:var(--muted)}
+details{margin-top:8px}
+summary{cursor:pointer;font-size:13px;color:var(--accent);font-weight:500;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+ ";}
+details[open] summary::before{content:"– ";}
+.body{margin-top:8px;font-size:14px}
+.body ol,.body ul{margin:4px 0 10px;padding-left:20px}
+.body li{margin-bottom:3px}
+.cap{background:var(--surface2);border-radius:6px;padding:10px;white-space:pre-wrap;font-size:13.5px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn{font:500 12px var(--display);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:6px;padding:6px 10px;cursor:pointer}
+.btn:hover{border-color:var(--fg)}
+.check{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted);cursor:pointer}
+.check input{accent-color:var(--brand);width:16px;height:16px}
+.empty{color:var(--muted);font-size:14px;padding:8px 0}
+.foot{margin-top:56px;border-top:1px solid var(--line);padding-top:18px;font-size:13px;color:var(--muted)}
+.foot a{color:var(--fg)}
+.foot ul{padding-left:18px;margin:6px 0 0}
+
+@media (max-width:860px){
+  .themes{grid-template-columns:1fr 1fr}
+  .play-top,.cols{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr 1fr}
+  .flow{grid-template-columns:1fr 1fr}
+  .flow .arrow{display:none}
+  .flow .src{grid-column:1/-1}
+}
+@media (max-width:520px){
+  .themes,.facts{grid-template-columns:1fr}
+  .day{grid-template-columns:1fr;gap:8px}
+  .date b{display:inline;font-size:20px;margin-right:8px}
+  .posts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="mk" viewBox="-85 -85 170 170"><mask id="mm" maskUnits="userSpaceOnUse" x="-85" y="-85" width="170" height="170"><rect x="-85" y="-85" width="170" height="170" fill="#fff"/><circle cx="47.4" cy="-47.4" r="23.9" fill="#000"/></mask><circle r="67" fill="none" stroke="currentColor" stroke-width="26" mask="url(#mm)"/><circle cx="47.4" cy="-47.4" r="14" fill="#C29B72"/></symbol></defs></svg>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="logo">DEV<svg><use href="#mk"/></svg>RA<span class="co">&amp; Co.</span></span>
+    <h1>Content calendar,<br><span class="serif">5 Oct – 1 Nov 2026</span></h1>
+    <p class="sub">Four weeks of posts for Instagram, Facebook, LinkedIn and TikTok. Each week has one theme, and every idea is reused across platforms in the format each one rewards. Times are in Gulf Standard Time.</p>
+    <div class="stats" id="stats"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section aria-labelledby="month-h">
+    <div class="sec-head"><h2 id="month-h">The month at a glance</h2><span class="label">One theme per week</span></div>
+    <div class="themes" id="themes"></div>
+    <div class="pillars" aria-label="Content pillars">
+      <span class="pill"><b>Insight</b> · teach one useful thing</span>
+      <span class="pill"><b>Humour</b> · the business-owner struggle, made relatable</span>
+      <span class="pill"><b>Behind the build</b> · how we design and code</span>
+      <span class="pill"><b>Point of view</b> · what DEVORA believes</span>
+      <span class="pill"><b>Conversation</b> · questions that start replies</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="play-h">
+    <div class="sec-head"><h2 id="play-h">Platform playbooks</h2><span class="label">What each platform rewards</span></div>
+    <div class="tabs" role="tablist" id="playTabs"></div>
+    <div id="playbook"></div>
+  </section>
+
+  <section aria-labelledby="flow-h">
+    <div class="sec-head"><h2 id="flow-h">One idea, four posts</h2><span class="label">How to save hours each week</span></div>
+    <div class="flow">
+      <div class="src"><span class="label" style="color:rgba(243,239,228,.6)">Start here</span><h3 style="font-size:19px;margin-top:6px">One weekly insight</h3><p>Write it once as a LinkedIn document. Everything else is cut from it.</p></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="out" style="--pc:var(--li)"><b><i class="dot" style="background:var(--li)"></i>LinkedIn</b>The full PDF document, 6–8 slides, written for business owners.</div>
+      <div class="out"><b><i class="dot" style="background:var(--ig)"></i>Instagram</b>The same slides redesigned as a 1080×1350 carousel, plus a Reel of the top tip.</div>
+      <div class="out"><b><i class="dot" style="background:var(--fb)"></i>Facebook</b>The carousel as an album, with a question in the caption to start comments.</div>
+      <div class="out"><b><i class="dot" style="background:var(--tt)"></i>TikTok</b>The single most surprising point, said to camera in under 20 seconds.</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="cal-h">
+    <div class="sec-head"><h2 id="cal-h">The calendar</h2><span class="label">Tap a post for the full brief</span></div>
+    <div class="toolbar">
+      <div class="tabs" id="filters" aria-label="Filter by platform"></div>
+      <div class="progress"><span id="progText">0 of 0 posted</span><span class="bar"><i id="progBar"></i></span></div>
+    </div>
+    <div id="calendar"></div>
+  </section>
+
+  <div class="foot">
+    <p><b>How to use this:</b> batch-create each week’s content on the Sunday before. Schedule Instagram and Facebook together in Meta Business Suite, and post LinkedIn and TikTok natively. Tick posts off as they go live; your ticks are saved in this browser only. Posting times are starting points, so after three weeks check each platform’s insights and move to the hours your audience is actually online.</p>
+    <p style="margin-top:10px"><b>Sources for the platform insights</b></p>
+    <ul>
+      <li><a href="https://buffer.com/resources/instagram-algorithms/" target="_blank" rel="noopener">Buffer: How the Instagram algorithm works (2026)</a></li>
+      <li><a href="https://www.dataslayer.ai/blog/linkedin-algorithm-february-2026-whats-working-now" target="_blank" rel="noopener">Dataslayer: LinkedIn algorithm, what’s working (2026)</a></li>
+      <li><a href="https://www.yourdigitalresource.com/post/tiktok-best-practices-for-small-businesses-in-2026" target="_blank" rel="noopener">Your Digital Resource: TikTok best practices for small businesses (2026)</a></li>
+      <li><a href="https://www.thinkwithgoogle.com/consumer-insights/consumer-trends/mobile-site-load-time-statistics/" target="_blank" rel="noopener">Think with Google: mobile site load time statistics</a> (the 53% / 3-second figure used in week 2)</li>
+    </ul>
+  </div>
+</main>
+
+<script>
+const PLAT = {
+  ig:{name:"Instagram", c:"var(--ig)"},
+  fb:{name:"Facebook", c:"var(--fb)"},
+  li:{name:"LinkedIn", c:"var(--li)"},
+  tt:{name:"TikTok", c:"var(--tt)"}
+};
+
+const WEEKS = [
+  {n:1, title:"First impressions", goal:"Introduce DEVORA and show why a website is a business’s first handshake.", start:"2026-10-05"},
+  {n:2, title:"Fast & mobile", goal:"Speed and phone experience: the invisible reasons customers leave.", start:"2026-10-12"},
+  {n:3, title:"Be found", goal:"Google, SEO and analytics, explained for business owners.", start:"2026-10-19"},
+  {n:4, title:"Sell & automate", goal:"Selling online and removing repetitive admin.", start:"2026-10-26"}
+];
+
+const PLAYBOOKS = {
+  ig:{
+    role:"Your portfolio and brand showcase. People discover you through Reels and decide to trust you through your grid.",
+    facts:[["Cadence","2 feed posts + Stories most days"],["Best formats","Carousels (feed), Reels under 90s (reach)"],["Start posting","7:30–9 PM, Mon–Sat"]],
+    rewards:["Sends by DM carry the most weight for Reels distribution","Watch time and early engagement","Carousels get more engagement than single images","Keywords in captions and your bio, now more than hashtags"],
+    dos:["End carousels with “Send this to someone who…”, because shares beat likes","Put a text hook on the first frame of every Reel (most watch muted)","Use 3–5 specific hashtags, e.g. #AbuDhabiBusiness","Reply to every comment and DM in the first hour"],
+    donts:["Posting twice within a few hours: space posts out","Re-uploading TikToks with the watermark","Hashtag walls of 20–30 tags","Generic stock photos with no DEVORA look"],
+    kpi:"Shares, saves and profile visits"
+  },
+  fb:{
+    role:"Local trust. Many UAE business owners and managers still check a company’s Facebook Page before getting in touch.",
+    facts:[["Cadence","3 posts a week"],["Best formats","Reels, photo albums, question posts"],["Start posting","12–2 PM or 7–9 PM"]],
+    rewards:["Posts that start real conversations in the comments","Reels, which reach people who don’t follow you yet","Consistent, original posting from a complete Page"],
+    dos:["Schedule with Instagram in Meta Business Suite to save time","Rewrite the caption as a question instead of pasting the Instagram one","Keep the Page complete: hours, WhatsApp button, website link","Join UAE business groups and answer website questions helpfully"],
+    donts:["Link-only posts with no image or context","Copying Instagram hashtags into Facebook captions","Leaving messages unanswered: response time shows on your Page"],
+    kpi:"Comments, messages and shares"
+  },
+  li:{
+    role:"Authority with decision-makers. This is where founders, managers and procurement teams decide who looks credible.",
+    facts:[["Cadence","3 posts a week, Mon / Wed / Fri"],["Best formats","PDF document posts (5–10 slides), founder text posts"],["Start posting","8–10 AM, best Tue–Thu"]],
+    rewards:["Dwell time: a post read for 30 seconds beats 50 quick likes","Document posts have the highest engagement of any format","Strong performance in the first 60 minutes","Topics that match your profile, so keep posting about websites and digital"],
+    dos:["Post from the founder’s personal profile, then reshare on the company Page","Hook in the first 150 characters, before the “…see more”","Reply to every comment within the first hour","Write like a person, with short paragraphs and one idea per post"],
+    donts:["External links in the post (they reduce reach by around 60%), and putting them in the comments is penalised too","A wall of hashtags at the end","Polls and “comment YES” engagement bait","Pure selling: teach first"],
+    kpi:"Comments from target clients, profile views, DMs"
+  },
+  tt:{
+    role:"Reach and personality. It’s also a search engine, so people type “website design Abu Dhabi” into TikTok.",
+    facts:[["Cadence","3–5 videos a week"],["Best formats","Phone-shot, face to camera, 7–30s"],["Start posting","7–10 PM"]],
+    rewards:["A hook in the first 1–2 seconds","Completion and rewatches, which is why short often wins","Content that feels native rather than like an ad","Trending sounds, used quickly"],
+    dos:["Film on your phone and talk to the camera like you’d talk to a friend","Add on-screen text and say your keywords out loud for TikTok search","Reply to good comments with a video reply","Batch-film 6–8 videos in one session"],
+    donts:["Polished ad-style edits","Slow intros like “Hi guys, today we’re going to…”","Hard selling: entertain or teach, and the profile does the selling"],
+    kpi:"Completion rate, shares and follows"
+  }
+};
+
+// p: platform, f: format, t: time (GST), pl: pillar, h: hook/title, o: outline beats, c: caption
+const POSTS = [
+/* ───────── WEEK 1 · FIRST IMPRESSIONS ───────── */
+{d:"2026-10-05",p:"li",f:"Text post",t:"8:30 AM",pl:"Point of view",h:"Most business websites are built to exist, not to work. That’s why we started DEVORA & Co.",
+ o:["Open with the line above as the hook","Two sentences on who you are: a digital studio in Abu Dhabi","The belief: a website should earn its keep by building trust, answering questions and bringing enquiries","One principle you won’t compromise on (e.g. performance is part of design)","Close with a question to the reader"],
+ c:"Most business websites are built to exist, not to work.\n\nThat’s why we started DEVORA & Co., a digital studio in Abu Dhabi.\n\nWe believe a website should do a job: earn trust in seconds, answer the questions customers are too busy to ask, and turn visitors into conversations.\n\nOver the next few weeks we’ll share what we’ve learned building for businesses here.\n\nWhat’s the one thing that makes you trust a company’s website?"},
+{d:"2026-10-05",p:"ig",f:"Carousel · 6 slides",t:"7:30 PM",pl:"Humour + insight",h:"Your business card says “premium.” Your website says “2009.”",
+ o:["Slide 1: the hook, with “(swipe if this hurts)”","Slide 2: Customers check your website before they call you","Slide 3: Signs it’s time: slow loading, zooming to read on a phone, “© 2019” in the footer, a “coming soon” page that never came","Slide 4: What a good site does: answers who, what, where and next step in 5 seconds","Slide 5: Your website works while you sleep, if it’s built to","Slide 6: “Send this to someone whose website needs this.” + DEVORA logo"],
+ c:"Be honest: does your website match the quality of your business? 👀\n\nSave this for your next website review, and send it to the friend who still has “© 2019” in their footer.\n\n#AbuDhabiBusiness #WebDesignUAE #SmallBusinessUAE #DigitalStudio"},
+{d:"2026-10-06",p:"tt",f:"Skit · 7–12s",t:"8:00 PM",pl:"Humour",h:"POV: you find a great restaurant… and the website says “coming soon” since 2021",
+ o:["Hook text on screen in the first second: “POV: you Google a place to eat”","Phone close-up, scroll, “Coming soon ©2021” page","Slow head turn to camera","End text: “Your customers notice.”","Use a trending sound; caption keywords: website, small business, Abu Dhabi"],
+ c:"Your website is your first impression 😅 #websitedesign #smallbusiness #abudhabi #uae #webdesigner"},
+{d:"2026-10-06",p:"fb",f:"Album + question",t:"1:00 PM",pl:"Conversation",h:"What’s the first thing you check on a business website?",
+ o:["Reuse the Monday Instagram carousel as a photo album","Rewrite the caption as a question","Reply to every comment the same day"],
+ c:"Quick question for business owners and customers alike:\n\nWhat’s the FIRST thing you check when you land on a company’s website? Prices, photos, reviews, location… or whether it even works on your phone?\n\nTell us in the comments 👇"},
+{d:"2026-10-07",p:"li",f:"PDF document · 7 slides",t:"9:00 AM",pl:"Insight",h:"The 5-second test: what every homepage must answer before a visitor leaves",
+ o:["Cover: The 5-second test","1. Who are you? (name and what you do, in plain words)","2. Who is it for?","3. Why should I trust you? (proof: work, clients, reviews)","4. Where are you? (city, service area)","5. What do I do next? (one clear action)","Last slide: Try it on your homepage today: ask a friend what they remember after 5 seconds"],
+ c:"Most visitors decide within seconds whether to stay on a website.\n\nWe use a simple 5-second test on every homepage we design. Here are the five questions it has to answer before anyone scrolls.\n\nTry it on your own site this week: show it to someone for 5 seconds and ask what they remember."},
+{d:"2026-10-07",p:"ig",f:"Reel · 15–20s",t:"7:30 PM",pl:"Insight",h:"3 things visitors notice in the first 5 seconds on your website",
+ o:["Hook text: “You have 5 seconds. Here’s what they see.”","Quick cuts over a screen recording of the DEVORA site","1: Is this for me? (headline)","2: Does it look trustworthy? (design and photos)","3: What do I do now? (button)","End: “Save this for your next website update”"],
+ c:"Five seconds. That’s your window. ⏱️\n\nSave this before your next website update.\n\n#WebDesignUAE #AbuDhabi #SmallBusinessTips #WebsiteTips"},
+{d:"2026-10-08",p:"tt",f:"Behind the build · 15–20s",t:"8:00 PM",pl:"Behind the build",h:"How we made a website scroll like a film",
+ o:["Hook: “Watch this website as I scroll” (screen recording of the DEVORA hero)","Voice-over: three images merge into one full-screen shot as you scroll","One sentence on why: motion guides attention, it isn’t decoration","End: “Want the breakdown? Comment ‘HOW’”"],
+ c:"Scroll animations, done with purpose 🎬 #webdesign #webdevelopment #uxdesign #websiteanimation #abudhabi"},
+{d:"2026-10-08",p:"fb",f:"Reel (cross-post)",t:"7:00 PM",pl:"Behind the build",h:"How we made a website scroll like a film",
+ o:["Cross-post the TikTok without the watermark (export the original file)","Caption written for Facebook, not copied"],
+ c:"Ever wondered why some websites just feel premium? A lot of it is how they move. Here’s a peek behind the build of our own site."},
+{d:"2026-10-09",p:"li",f:"Text post",t:"9:00 AM",pl:"Point of view",h:"Your website isn’t a brochure. It’s your best salesperson. It just needs a script.",
+ o:["Hook line above","A brochure lists things; a salesperson answers objections","Three objections a website should handle: Can I trust you? Can you do this for me? What happens next?","Close: which of these does your site answer today?"],
+ c:"Your website isn’t a brochure. It’s your best salesperson. It just needs a script.\n\nA brochure lists services. A good salesperson answers the questions in the customer’s head:\n\n→ Can I trust you?\n→ Have you done this for someone like me?\n→ What happens if I reach out?\n\nIf your website answers those three, it sells while you sleep.\n\nWhich one does yours answer best?"},
+{d:"2026-10-09",p:"ig",f:"Story · poll",t:"6:00 PM",pl:"Conversation",h:"“Rate your own website from 1 to 10. Be honest.”",
+ o:["Story 1: slider sticker, “Rate your own website”","Story 2: question box, “What’s the one thing you’d change?”","Save good answers for future content"],
+ c:"(Story: no caption needed)"},
+{d:"2026-10-10",p:"tt",f:"Text-on-screen humour · 10s",t:"7:00 PM",pl:"Humour",h:"What clients say vs what they mean",
+ o:["Format: split text, “They say” / “They mean”","“Can you make the logo bigger?” → “It doesn’t feel like us yet”","“Make it pop” → “I can’t explain it but I’ll know it when I see it”","“Just a small change” → “Please redo the homepage”","Keep it affectionate, never mocking real clients"],
+ c:"Translation services included 😂 #webdesigner #clientlife #designhumor #smallbusiness #uae"},
+{d:"2026-10-10",p:"fb",f:"Photo post",t:"12:00 PM",pl:"Point of view",h:"Meet the studio: why we’re called DEVORA & Co.",
+ o:["Photo of the workspace or the brand board (logo, colours)","Story of the name and the tagline “Beyond the Ordinary”","Invite people to follow for weekly website tips"],
+ c:"Hello Abu Dhabi 👋\n\nWe’re DEVORA & Co., a digital studio that designs and builds websites and online systems for businesses that want to stand out.\n\nOur promise is in our tagline: Beyond the Ordinary. Follow along for practical website tips every week."},
+
+/* ───────── WEEK 2 · FAST & MOBILE ───────── */
+{d:"2026-10-12",p:"li",f:"Text post",t:"8:30 AM",pl:"Insight",h:"Google found 53% of mobile visits are abandoned if a page takes longer than 3 seconds to load.",
+ o:["Hook: the stat (credit Google)","What usually slows sites down: oversized images, too many plugins, auto-playing video, cheap hosting, unused scripts","One fix per item, one line each","Close: “Test yours today with PageSpeed Insights (search for it on Google)”"],
+ c:"Google found that 53% of mobile visits are abandoned if a page takes longer than 3 seconds to load.\n\nThe usual culprits we find:\n→ Images uploaded straight from a camera\n→ Ten plugins doing the job of two\n→ Auto-playing background video\n→ Bargain hosting\n→ Scripts nobody remembers adding\n\nThe fix is rarely a redesign. It’s usually discipline.\n\nWhen did you last test your site on mobile data?"},
+{d:"2026-10-12",p:"ig",f:"Carousel · 6 slides",t:"7:30 PM",pl:"Humour + insight",h:"Your website is fast. On your office Wi-Fi.",
+ o:["Slide 1: hook","Slide 2: Your customers are on 4G, in a car park, with 3% battery","Slide 3: Test it like them: open your site on mobile data, not Wi-Fi","Slide 4: The 3 usual suspects: huge images, auto-play video, too many plugins","Slide 5: Free check: Google PageSpeed Insights","Slide 6: “Send this to the person who manages your website”"],
+ c:"Office Wi-Fi is lying to you. 📶\n\nTest your site on mobile data today, then send this to whoever manages your website.\n\n#WebsiteSpeed #WebDesignUAE #AbuDhabiBusiness #MobileFirst"},
+{d:"2026-10-13",p:"tt",f:"Skit · 7–10s",t:"8:00 PM",pl:"Humour",h:"Loading… loading… customer gone.",
+ o:["Hook text: “Your website loading on 4G”","Actor taps phone, waits, sighs, opens a competitor","Text: “3 seconds. That’s all you get.”"],
+ c:"Every second counts ⏳ #websitespeed #smallbusiness #webdesign #uae #abudhabi"},
+{d:"2026-10-13",p:"fb",f:"Album + challenge",t:"1:00 PM",pl:"Conversation",h:"Try this: open your website on mobile data. How many seconds did it take?",
+ o:["Reuse Monday’s carousel as an album","Challenge in the caption","Reply with one quick tip to anyone who shares a result"],
+ c:"A 30-second challenge for business owners 📱\n\nTurn off Wi-Fi, open your website on mobile data and count the seconds until it’s usable.\n\nPost your time below. We’ll reply with one quick tip to speed it up."},
+{d:"2026-10-14",p:"li",f:"PDF document · 8 slides",t:"9:00 AM",pl:"Insight",h:"Mobile-first checklist: 8 things to fix before your next campaign",
+ o:["Cover","1. Text readable without zooming","2. Buttons big enough for thumbs","3. A sticky call or WhatsApp button","4. Short forms with the right keyboard (numbers for phone fields)","5. Compressed images","6. A menu that works one-handed","7. No pop-ups covering the screen","8. Load time under 3 seconds on 4G","Last slide: Save and share with your marketing team"],
+ c:"Before you spend on ads, check where the clicks will land.\n\nMost campaign traffic in the UAE arrives on a phone. Here’s the 8-point mobile checklist we run on every site before launch.\n\nSave it for your next campaign."},
+{d:"2026-10-14",p:"ig",f:"Reel · 20–30s",t:"7:30 PM",pl:"Behind the build",h:"Testing a website on my phone like a real customer would",
+ o:["Hook: “I test every site like an impatient customer”","Screen recording of the DEVORA site on a phone, with ✔ marks: tap targets, readable text, quick load, sticky contact","Don’t show or name other businesses","End: “Do yours pass?”"],
+ c:"The impatient-customer test 📱✔️\n\nDoes your site pass? Save this and check yours tonight.\n\n#MobileFirst #UXDesign #WebDesignUAE #AbuDhabi"},
+{d:"2026-10-15",p:"tt",f:"Tutorial · 20–30s",t:"8:00 PM",pl:"Insight",h:"The free tool that tells you why your website is slow",
+ o:["Hook: “Google will tell you exactly why your site is slow, for free”","Screen record: search PageSpeed Insights, paste a URL, show the score","Point at the top 2 suggestions and explain them in plain words","Say “website speed test” out loud for search"],
+ c:"Free website speed test from Google 🔍 #websitespeed #seo #webdesign #smallbusinesstips #uae"},
+{d:"2026-10-15",p:"fb",f:"Reel (cross-post)",t:"7:00 PM",pl:"Insight",h:"The free tool that tells you why your website is slow",
+ o:["Cross-post the original video file","Facebook caption with the steps written out"],
+ c:"Is your website slow? Google has a free tool that tells you why:\n\n1. Search “PageSpeed Insights”\n2. Paste your website address\n3. Look at the top two suggestions\n\nQuestions? Ask below 👇"},
+{d:"2026-10-16",p:"li",f:"Text post · story",t:"9:00 AM",pl:"Behind the build",h:"The fastest improvement we ever made to a website was deleting something.",
+ o:["Hook line","The story: a homepage slider or auto-play video that looked impressive but slowed everything down","What happened when it was replaced with one strong image and a clear headline","Lesson: every element must earn its place","Keep it general; don’t name a client"],
+ c:"The fastest improvement we ever made to a website was deleting something.\n\nA homepage slider. Five rotating images, each with its own message, and a lot of loading time.\n\nWe replaced it with one strong image and one clear sentence. The page got faster, and visitors finally knew what the business did.\n\nEvery element on a website should earn its place.\n\nWhat would you delete from yours?"},
+{d:"2026-10-16",p:"ig",f:"Story · quiz",t:"6:00 PM",pl:"Conversation",h:"Quiz: which slows a website down most?",
+ o:["Quiz sticker: A) Big images B) Fonts C) Colours D) Footer links (answer: A)","Follow-up story explaining the answer in one line"],
+ c:"(Story: no caption needed)"},
+{d:"2026-10-17",p:"tt",f:"Relatable humour · 10s",t:"7:00 PM",pl:"Humour",h:"Me: I build websites. My family: so you can fix the printer?",
+ o:["Hook text with the line above","Reaction shot: blank stare, then you quietly fixing the printer anyway","End text: “Every tech person ever”"],
+ c:"It’s always the printer 🖨️😂 #webdeveloper #techlife #relatable #uae #developerhumor"},
+{d:"2026-10-17",p:"fb",f:"Question post",t:"12:00 PM",pl:"Conversation",h:"What annoys you most on a website: pop-ups, slow loading or tiny text?",
+ o:["Text post with a simple branded background image","Reply to comments with a light, friendly tone"],
+ c:"Be honest 😅 What makes you leave a website fastest?\n\n1️⃣ Pop-ups everywhere\n2️⃣ Slow loading\n3️⃣ Tiny text on mobile\n4️⃣ Music that starts playing\n\nComment your number below."},
+
+/* ───────── WEEK 3 · BE FOUND ───────── */
+{d:"2026-10-19",p:"li",f:"Text post",t:"8:30 AM",pl:"Point of view",h:"Most businesses treat SEO like a switch. It’s more like a garden.",
+ o:["Hook line","Why: rankings come from steady signals, not a one-time setup","The four basics: a complete Google Business Profile, clear page titles, local keywords, regular reviews","Close: ask what the reader has tried"],
+ c:"Most businesses treat SEO like a switch. It’s more like a garden.\n\nYou don’t switch it on once. You plant the basics and keep tending them:\n\n→ A complete Google Business Profile\n→ Page titles that say what you do and where\n→ The words your customers actually search\n→ A steady flow of genuine reviews\n\nIt’s slower than ads, but it keeps working when you stop paying.\n\nWhat’s worked best for your business?"},
+{d:"2026-10-19",p:"ig",f:"Carousel · 7 slides",t:"7:30 PM",pl:"Insight",h:"Nobody can visit a website they can’t find.",
+ o:["Slide 1: hook","Slide 2: Google Business Profile: free, and often the first thing people see","Slide 3: Page titles: say what you do + where (e.g. “Interior fit-out in Abu Dhabi”)","Slide 4: Use your customers’ words, not industry jargon","Slide 5: Ask happy customers for reviews","Slide 6: Add something new regularly (projects, FAQs)","Slide 7: “Save this checklist”"],
+ c:"Being great is step one. Being findable is step two. 🔎\n\nSave this checklist and tick one off this week.\n\n#SEOtips #GoogleBusinessProfile #AbuDhabiBusiness #SmallBusinessUAE"},
+{d:"2026-10-20",p:"tt",f:"Talking head · 10–15s",t:"8:00 PM",pl:"Conversation",h:"Google your own business right now. What shows up first?",
+ o:["Hook: “Stop. Google your business name. Now.”","React to the possibilities: your website? a directory? a competitor?","End: “Comment what came up first”"],
+ c:"Do it now and tell me 👇 #seo #googlebusiness #smallbusiness #abudhabi #uaebusiness"},
+{d:"2026-10-20",p:"fb",f:"How-to post",t:"1:00 PM",pl:"Insight",h:"Set up your free Google Business Profile in 5 steps",
+ o:["Branded image with the 5 steps","Steps in the caption","Offer to answer questions in the comments"],
+ c:"Your free Google Business Profile in 5 steps:\n\n1. Go to business.google.com\n2. Add your business name and category\n3. Add your location or service area\n4. Verify your business\n5. Add photos, hours and your website\n\nStuck on a step? Ask below and we’ll help."},
+{d:"2026-10-21",p:"li",f:"PDF document · 7 slides",t:"9:00 AM",pl:"Insight",h:"Website numbers that actually matter (and the ones that don’t)",
+ o:["Cover","Vanity: total visits → Value: enquiries","Vanity: followers → Value: returning visitors","Watch: where visitors come from (search, social, direct)","Watch: which page they leave from","Watch: conversion rate (enquiries ÷ visitors)","Last slide: Check these monthly in Google Analytics"],
+ c:"Ten thousand visits mean nothing if no one gets in touch.\n\nHere are the website numbers we actually watch for businesses, and the vanity metrics we ignore.\n\nWhich of these do you check today?"},
+{d:"2026-10-21",p:"ig",f:"Reel · 20–30s",t:"7:30 PM",pl:"Insight",h:"What Google Analytics can tell you about your customers in 30 seconds",
+ o:["Hook: “Your website knows things about your customers. Here’s where to look.”","Screen recording using Google’s free Analytics demo account","Show: where visitors come from, the most visited page, phone vs desktop","End: “Save this for when you set up yours”"],
+ c:"Your website is quietly collecting answers 📊\n\nSave this for later.\n\n#GoogleAnalytics #DigitalMarketingUAE #SmallBusinessTips #AbuDhabi"},
+{d:"2026-10-22",p:"tt",f:"Demo · 15–20s",t:"8:00 PM",pl:"Insight",h:"English and Arabic on one website? Here’s why it matters in the UAE",
+ o:["Hook: “Watch this website flip”","Show a page switching from English (left to right) to Arabic (right to left)","Explain: menus, images and icons mirror too, not just the words","End: “Bilingual is two first impressions”"],
+ c:"Arabic + English, done properly 🇦🇪 #arabicwebsite #webdesign #uae #abudhabi #bilingual"},
+{d:"2026-10-22",p:"fb",f:"Reel (cross-post)",t:"7:00 PM",pl:"Insight",h:"English and Arabic on one website",
+ o:["Cross-post the original file","Caption in both English and Arabic"],
+ c:"Bilingual isn’t just translation. Layouts, menus and icons need to mirror for Arabic too.\n\nهل موقعك متوفر باللغتين العربية والإنجليزية؟"},
+{d:"2026-10-23",p:"li",f:"Text post",t:"9:00 AM",pl:"Point of view",h:"Bilingual isn’t translation. It’s two first impressions.",
+ o:["Hook line","What changes in Arabic: direction, typography, number formats, spacing","Why it matters for trust in the UAE","Close: does your website speak to both audiences?"],
+ c:"Bilingual isn’t translation. It’s two first impressions.\n\nAn Arabic version of a website isn’t the English one with different words. The layout flips right to left, the typography changes, icons and arrows mirror, and the tone shifts.\n\nGet it right and both audiences feel the site was made for them. Get it wrong and one of them notices immediately.\n\nDoes your website speak to both?"},
+{d:"2026-10-23",p:"ig",f:"Story · question box",t:"6:00 PM",pl:"Conversation",h:"“Ask us anything about websites.”",
+ o:["Question sticker","Answer the best 3–5 over the weekend","Turn the best one into Saturday’s Facebook post"],
+ c:"(Story: no caption needed)"},
+{d:"2026-10-24",p:"tt",f:"Skit · 10–15s",t:"7:00 PM",pl:"Humour",h:"When someone promises “page 1 on Google in 24 hours”",
+ o:["Hook text with the line above","Reaction: slow suspicious zoom","Text: “SEO takes time. Anyone who guarantees overnight rankings is selling something.”"],
+ c:"If it sounds too good to be true… 🤨 #seo #seotips #smallbusiness #uae #marketingtips"},
+{d:"2026-10-24",p:"fb",f:"Q&A post",t:"12:00 PM",pl:"Conversation",h:"You asked, we answered: the best question from this week’s Stories",
+ o:["Turn the best Instagram Story question into a post","Answer in 3–5 short lines","Invite more questions"],
+ c:"You asked 👇\n\n“[Paste the question]”\n\n[Your answer in 3–5 short lines]\n\nGot a website question? Drop it in the comments."},
+
+/* ───────── WEEK 4 · SELL & AUTOMATE ───────── */
+{d:"2026-10-26",p:"li",f:"Text post",t:"8:30 AM",pl:"Point of view",h:"If your sales process lives in WhatsApp, your business lives in someone’s phone.",
+ o:["Hook line","The risks: lost chats, no history when staff change, slow replies at busy times","Simple fixes: a catalogue, saved replies, a CRM, an online store","Close: how do you manage incoming orders today?"],
+ c:"If your sales process lives in WhatsApp, your business lives in someone’s phone.\n\nWhat happens when that phone is lost, the employee leaves, or 40 messages arrive at once?\n\nYou don’t need to quit WhatsApp. You need a system behind it:\n→ A catalogue customers can browse alone\n→ Saved replies for common questions\n→ One place where every order and customer is recorded\n\nHow do you manage incoming orders today?"},
+{d:"2026-10-26",p:"ig",f:"Carousel · 6 slides",t:"7:30 PM",pl:"Humour + insight",h:"“Is this available?” “Price?” “Do you deliver?” ×100 a day.",
+ o:["Slide 1: hook, with “Your WhatsApp deserves a break”","Slide 2: Selling through DMs doesn’t scale: lost messages, missed orders","Slide 3: Your customers shop at 2 AM. You sleep at 2 AM.","Slide 4: What an online store handles for you: browsing, cart, payment, invoice","Slide 5: You stay in control from one dashboard","Slide 6: “Send this to a business owner drowning in DMs”"],
+ c:"If your phone buzzes more than your doorbell, this one’s for you 📲\n\nSend it to a business owner who’s drowning in DMs.\n\n#EcommerceUAE #SmallBusinessUAE #AbuDhabiBusiness #OnlineStore"},
+{d:"2026-10-27",p:"tt",f:"Skit · 7–10s",t:"8:00 PM",pl:"Humour",h:"Customer: “Price?” Me: *sends price* Customer: *seen*",
+ o:["Hook text: “Selling on WhatsApp be like”","Phone screen: “Price?” → your reply → “Seen ✓✓”","Your face: slow blink","End text: “Every. Single. Time.”"],
+ c:"Left on seen again 😭 #smallbusiness #whatsappbusiness #relatable #uae #businessowner"},
+{d:"2026-10-27",p:"fb",f:"Album + question",t:"1:00 PM",pl:"Conversation",h:"Do you sell through WhatsApp, Instagram or a website?",
+ o:["Reuse Monday’s carousel as an album","Question in the caption","Reply to every comment"],
+ c:"Quick poll for business owners 👇\n\nWhere do most of your orders come from?\n\n📱 WhatsApp\n📸 Instagram DMs\n🌐 Your website\n📞 Phone calls\n\nComment below. We’re curious!"},
+{d:"2026-10-28",p:"li",f:"PDF document · 7 slides",t:"9:00 AM",pl:"Insight",h:"5 repetitive tasks every small business can automate this month",
+ o:["Cover","1. An instant auto-reply to new enquiries","2. Invoices generated automatically for each order","3. Appointment reminders by WhatsApp or email","4. Website enquiries sent straight into a CRM","5. Review requests after a job is finished","Last slide: Start with one. Measure the time saved."],
+ c:"Busywork is the quietest cost in a small business.\n\nHere are five tasks we see businesses doing by hand every day, which can run on their own.\n\nStart with one this month. Which would save you the most time?"},
+{d:"2026-10-28",p:"ig",f:"Reel · 20–30s",t:"7:30 PM",pl:"Behind the build",h:"Watch an order go from cart to invoice, with no one touching it",
+ o:["Hook: “No one touched this order”","Screen recording of a demo store: add to cart, checkout, invoice generated, order appears in the dashboard","Light music, on-screen labels for each step","End: “That’s time back in your day”"],
+ c:"Cart → checkout → invoice → dashboard. Automatically. ⚙️\n\nSave this for when you’re ready to sell online.\n\n#Ecommerce #BusinessAutomation #AbuDhabi #SmallBusinessUAE"},
+{d:"2026-10-29",p:"tt",f:"Tutorial · 20–30s",t:"8:00 PM",pl:"Insight",h:"One WhatsApp Business setting every small business should turn on",
+ o:["Hook: “Turn this on before you lose another customer”","Screen record: WhatsApp Business → Business tools → Greeting message / Away message / Quick replies","Explain each in one line","Say “WhatsApp Business tips” out loud for search"],
+ c:"WhatsApp Business tips that save hours 💬 #whatsappbusiness #smallbusinesstips #uae #abudhabi #businesstips"},
+{d:"2026-10-29",p:"fb",f:"Reel (cross-post)",t:"7:00 PM",pl:"Insight",h:"One WhatsApp Business setting every small business should turn on",
+ o:["Cross-post the original file","Write the steps out in the caption"],
+ c:"3 WhatsApp Business features most owners never set up:\n\n✅ Greeting message for new customers\n✅ Away message after hours\n✅ Quick replies for common questions\n\nFind them under Settings → Business tools."},
+{d:"2026-10-30",p:"li",f:"Text post · reflection",t:"9:00 AM",pl:"Conversation",h:"One month of sharing what we know. Here’s what you responded to most.",
+ o:["Thank people for following along","Name the post that got the most response this month and why you think it did","Ask what topic to cover next month"],
+ c:"A month ago we started sharing what we’ve learned building websites for businesses here.\n\nThe post that got the strongest response: [name it]. I think it struck a nerve because [one sentence].\n\nWhat should we cover next month? Design, SEO, automation or something else?"},
+{d:"2026-10-30",p:"ig",f:"Story · poll",t:"6:00 PM",pl:"Conversation",h:"Next month: more design or more tech?",
+ o:["Poll sticker: Design ✨ / Tech ⚙️","Use the result to shape November’s calendar"],
+ c:"(Story: no caption needed)"},
+{d:"2026-10-31",p:"tt",f:"Humour · 15s",t:"7:00 PM",pl:"Humour",h:"Website features scarier than any horror film",
+ o:["Hook text: “Scariest things on the internet”","Quick list with dramatic music: music that autoplays, 4 pop-ups before you can read anything, “Best viewed in Internet Explorer”, a contact form that loses your message","End: “Sleep well 👻”"],
+ c:"Happy Halloween from the web 👻 #halloween #webdesign #websitefails #funny #uae"},
+{d:"2026-10-31",p:"fb",f:"Recap album",t:"12:00 PM",pl:"Insight",h:"October recap: our 4 most useful website tips",
+ o:["Album of the best slide from each week","Caption lists the 4 tips","Invite people to follow for November"],
+ c:"October in 4 tips:\n\n1. Your homepage has 5 seconds to answer who, what and why\n2. Test your site on mobile data, not office Wi-Fi\n3. A complete Google Business Profile is free visibility\n4. If sales live in WhatsApp, put a system behind it\n\nFollow for more in November 🚀"}
+];
+
+const KEY = "devora-cal-done-v1";
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { done = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+const fmtDay = iso => { const d = new Date(iso + "T12:00:00"); return { num: d.getDate(), dow: d.toLocaleDateString("en-GB",{weekday:"short"}), mon: d.toLocaleDateString("en-GB",{month:"short"}) }; };
+POSTS.forEach((p,i) => p.id = "p" + i);
+
+/* header stats */
+const counts = {ig:0,fb:0,li:0,tt:0};
+POSTS.forEach(p => counts[p.p]++);
+document.getElementById("stats").innerHTML =
+  `<span class="stat"><b>${POSTS.length}</b> posts in 4 weeks</span>` +
+  Object.keys(PLAT).map(k => `<span class="stat"><i class="dot" style="background:${PLAT[k].c}"></i>${PLAT[k].name} <b>${counts[k]}</b></span>`).join("");
+
+/* themes */
+document.getElementById("themes").innerHTML = WEEKS.map(w => {
+  const s = fmtDay(w.start), e = fmtDay(new Date(new Date(w.start + "T12:00:00").getTime() + 6*864e5).toISOString().slice(0,10));
+  return `<div class="theme"><span class="label">Week ${w.n} · ${s.num} ${s.mon} – ${e.num} ${e.mon}</span><h3>${w.title}</h3><p>${w.goal}</p></div>`;
+}).join("");
+
+/* playbooks */
+let playSel = "ig";
+function renderPlay(){
+  document.getElementById("playTabs").innerHTML = Object.keys(PLAT).map(k =>
+    `<button class="tab" role="tab" aria-selected="${k===playSel}" aria-pressed="${k===playSel}" data-k="${k}"><i class="dot" style="background:${PLAT[k].c}"></i>${PLAT[k].name}</button>`).join("");
+  const b = PLAYBOOKS[playSel], P = PLAT[playSel];
+  document.getElementById("playbook").innerHTML = `<div class="play" role="tabpanel">
+    <div class="play-top">
+      <div><h3><i class="dot" style="background:${P.c};width:12px;height:12px"></i>${P.name}</h3><p class="role">${b.role}</p></div>
+      <div class="fact" style="align-self:start"><span class="label">What to measure</span><p>${b.kpi}</p></div>
+    </div>
+    <div class="facts">${b.facts.map(f => `<div class="fact"><span class="label">${f[0]}</span><p>${f[1]}</p></div>`).join("")}</div>
+    <div class="cols">
+      <div class="rew"><h4>What it rewards</h4><ul>${b.rewards.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+      <div class="do"><h4>Do</h4><ul>${b.dos.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+      <div class="dont"><h4>Avoid</h4><ul>${b.donts.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    </div></div>`;
+}
+document.getElementById("playTabs").addEventListener("click", e => { const t = e.target.closest("[data-k]"); if (!t) return; playSel = t.dataset.k; renderPlay(); });
+renderPlay();
+
+/* calendar */
+let filter = "all";
+function renderFilters(){
+  const opts = [["all","All platforms","var(--accent)"], ...Object.keys(PLAT).map(k=>[k,PLAT[k].name,PLAT[k].c])];
+  document.getElementById("filters").innerHTML = opts.map(([k,n,c]) =>
+    `<button class="tab" aria-pressed="${k===filter}" data-f="${k}"><i class="dot" style="background:${c}"></i>${n}</button>`).join("");
+}
+function renderProgress(){
+  const list = POSTS.filter(p => filter==="all" || p.p===filter);
+  const n = list.filter(p => done[p.id]).length;
+  document.getElementById("progText").textContent = `${n} of ${list.length} posted`;
+  document.getElementById("progBar").style.width = (list.length ? n/list.length*100 : 0) + "%";
+}
+function card(p){
+  const P = PLAT[p.p];
+  return `<article class="post${done[p.id]?" done":""}" style="--pc:${P.c}" data-id="${p.id}">
+    <div class="meta"><span class="chip plat">${P.name}</span><span class="chip">${esc(p.f)}</span><span class="chip time">${p.t}</span></div>
+    <p class="hook">${esc(p.h)}</p>
+    <span class="pillar">${esc(p.pl)}</span>
+    <details><summary>Brief &amp; caption</summary><div class="body">
+      <span class="label">Content</span><ol>${p.o.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+      <span class="label">Caption</span><div class="cap" id="cap-${p.id}">${esc(p.c)}</div>
+    </div></details>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="chk-${p.id}" ${done[p.id]?"checked":""}> Posted</label>
+      <button class="btn" data-copy="${p.id}">Copy caption</button>
+    </div></article>`;
+}
+function renderCal(){
+  const out = WEEKS.map(w => {
+    const startT = new Date(w.start + "T12:00:00").getTime();
+    const days = [...Array(7)].map((_,i) => new Date(startT + i*864e5).toISOString().slice(0,10));
+    const dayHtml = days.map(iso => {
+      const ps = POSTS.filter(p => p.d===iso && (filter==="all" || p.p===filter));
+      if (!ps.length) return "";
+      const f = fmtDay(iso);
+      return `<div class="day"><div class="date"><b>${f.num}</b><span>${f.dow} · ${f.mon}</span></div><div class="posts">${ps.map(card).join("")}</div></div>`;
+    }).join("");
+    return `<div class="week" id="week-${w.n}"><div class="week-head"><span class="label">Week ${w.n}</span><h3>${w.title}</h3><span class="goal">${w.goal}</span></div>${dayHtml || '<p class="empty">Nothing scheduled for this platform this week.</p>'}</div>`;
+  }).join("") + `<div class="week"><div class="week-head"><span class="label">Sun 1 Nov</span><h3>Plan November</h3><span class="goal">No post. Review what performed best this month and batch next week’s content.</span></div></div>`;
+  document.getElementById("calendar").innerHTML = out;
+  renderProgress();
+}
+document.getElementById("filters").addEventListener("click", e => { const t = e.target.closest("[data-f]"); if (!t) return; filter = t.dataset.f; renderFilters(); renderCal(); });
+document.getElementById("calendar").addEventListener("change", e => {
+  if (!e.target.matches('input[type="checkbox"]')) return;
+  const art = e.target.closest(".post"), id = art.dataset.id;
+  if (e.target.checked) done[id] = 1; else delete done[id];
+  art.classList.toggle("done", e.target.checked); save(); renderProgress();
+});
+document.getElementById("calendar").addEventListener("click", e => {
+  const b = e.target.closest("[data-copy]"); if (!b) return;
+  const text = POSTS.find(p => p.id===b.dataset.copy).c;
+  const ok = () => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy caption", 1500); };
+  const fallback = () => { const el = document.getElementById("cap-" + b.dataset.copy); const det = el.closest("details"); det.open = true; const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "Selected, press Ctrl+C"; };
+  try { navigator.clipboard.writeText(text).then(ok, fallback); } catch (err) { fallback(); }
+});
+renderFilters(); renderCal();
+</script>
+
+</body></html>
